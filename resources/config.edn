@@ -1,0 +1,3 @@
+{:flickr-key nil
+ :flickr-secret nil
+ :nomad/private-file #nomad/file "./resources/private-config.edn"}
