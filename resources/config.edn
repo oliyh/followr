@@ -1,3 +1,6 @@
-{:flickr-key nil
- :flickr-secret nil
+{:consumer-key nil
+ :consumer-secret nil
+ :token nil
+ :token-secret nil
+
  :nomad/private-file #nomad/file "./resources/private-config.edn"}
