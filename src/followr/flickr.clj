@@ -62,18 +62,14 @@
          (map :nsid))))
 
 (defn user-photos-summary [user-id]
-  (println "Calling user summary")
   (let [response (->> (call-flickr {:method "flickr.people.getPublicPhotos"
                                     :user_id user-id
                                     :per_page 1
                                     :extras "date_upload"})
-                      :photos)
-        result
-        {:user-id user-id
-         :photo-count (Long/parseLong (:total response))
-         :last-uploaded (some-> response :photo first :dateupload Long/parseLong (* 1000) tc/from-long)}]
-    (println result)
-    result))
+                      :photos)]
+    {:user-id user-id
+     :photo-count (Long/parseLong (:total response))
+     :last-uploaded (some-> response :photo first :dateupload Long/parseLong (* 1000) tc/from-long)}))
 
 (defn find-groups [q]
   (call-flickr {:method "flickr.groups.search"

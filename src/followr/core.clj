@@ -31,13 +31,15 @@
                   {:currently_following false}
                   ["user_id = ?" user-id])))
 
-(defn- find-candidate []
+(defn- find-candidate [currently-following]
   (->> (flickr/random-group-members (rand-nth ["38436807@N00" ;;flickr today
                                                "34427469792@N01" ;; flickr central
                                                ]))
+       (remove currently-following)
        (shuffle)
        (some
-        #(let [{:keys [user-id photo-count last-uploaded]} (flickr/user-photos-summary %)]
+        #(let [{:keys [user-id photo-count last-uploaded] :as candidate} (flickr/user-photos-summary %)]
+           (log/info "Considering candidate" candidate)
            (and (< 100 photo-count)
                 last-uploaded
                 (t/after? last-uploaded (-> 120 days ago))
@@ -47,23 +49,22 @@
   (let [{:keys [db-url]} (config)
         db (db/create-db-connection db-url)
         currently-following (set (current-following db))
-        candidates [(find-candidate)]]
+        candidates [(find-candidate currently-following)]]
 
     (log/info "Currently following" (count currently-following))
-    (log/info "Found" (count candidates) "candidates")
+    (log/info "Found" (count candidates) "new candidates")
 
     (doseq [candidate candidates]
-      (if (contains? currently-following candidate)
-        (log/info "Already following" candidate)
-
-        (do (log/info "Following" candidate)
-            (mark-followed! db candidate)
-            (flickr/add-contact! candidate))))
+      (do (log/info "Following" candidate)
+          (mark-followed! db candidate)
+          ;;(flickr/add-contact! candidate)
+          ))
 
     (doseq [user (old-following db (-> 14 days ago))]
       (log/info "Removing old user" user)
       (mark-unfollowed! db user)
-      (flickr/remove-contact! user))))
+      ;;(flickr/remove-contact! user)
+      )))
 
 (defn -main [& args]
   (followr)
