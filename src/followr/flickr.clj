@@ -2,7 +2,8 @@
   (:require [followr.config :refer [config]]
             [clj-http.client :as http]
             [oauth.client :as oauth]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [clj-time.coerce :as tc]))
 
 (def flickr-rest-endpoint "https://api.flickr.com/services/rest")
 
@@ -49,7 +50,7 @@
 (defn list-contacts []
   (call-flickr {:method "flickr.contacts.getList"}))
 
-(defn list-group-members [group-id]
+(defn random-group-members [group-id]
   (let [{:keys [pages]} (:members (call-flickr {:method "flickr.groups.members.getList"
                                                 :group_id group-id
                                                 :per_page 0}))]
@@ -60,6 +61,19 @@
          :member
          (map :nsid))))
 
+(defn user-photos-summary [user-id]
+  (println "Calling user summary")
+  (let [response (->> (call-flickr {:method "flickr.people.getPublicPhotos"
+                                    :user_id user-id
+                                    :per_page 1
+                                    :extras "date_upload"})
+                      :photos)
+        result
+        {:user-id user-id
+         :photo-count (Long/parseLong (:total response))
+         :last-uploaded (some-> response :photo first :dateupload Long/parseLong (* 1000) tc/from-long)}]
+    (println result)
+    result))
 
 (defn find-groups [q]
   (call-flickr {:method "flickr.groups.search"
