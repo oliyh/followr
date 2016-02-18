@@ -9,6 +9,7 @@
                  [clj-oauth "1.5.4"]
                  [cheshire "5.5.0"]
                  [org.clojure/tools.logging "0.3.1"]
+                 [clj-time "0.11.0"]
 
                  ;; persistence
                  [org.clojure/java.jdbc "0.3.5"]
@@ -21,4 +22,6 @@
   :target-path "target/%s"
   :main ^:skip-aot followr.core
   :resource-paths ["resources" "migrators"]
+  :min-lein-version "2.0.0"
+  :uberjar-name "followr-standalone.jar"
   :profiles {:uberjar {:aot :all}})

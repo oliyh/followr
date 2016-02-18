@@ -6,7 +6,10 @@
 
  :nomad/environments
  {"heroku"
-  {:db-url #nomad/env-var "DATABASE_URL"}}
-
+  {:db-url #nomad/env-var "DATABASE_URL"
+   :consumer-key #nomad/env-var "FOLLOWR_CONSUMER_KEY"
+   :consumer-secret #nomad/env-var "FOLLOWR_CONSUMER_SECRET"
+   :token #nomad/env-var "FOLLOWR_TOKEN"
+   :token-secret #nomad/env-var "FOLLOWR_SECRET"}}
 
  :nomad/private-file #nomad/file "./resources/private-config.edn"}

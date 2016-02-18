@@ -9,6 +9,7 @@
      (sql/create-table-ddl :following
                            [:id "bigserial primary key"]
                            [:user_id "varchar(128)"]
+                           [:currently_following "boolean"]
                            [:followed_on "TIMESTAMP NOT NULL DEFAULT now()"])
      "CREATE UNIQUE INDEX following_user_id_idx ON following(user_id);"
      "CREATE INDEX following_followed_on_idx ON following(followed_on);")))
