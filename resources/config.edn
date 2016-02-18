@@ -2,5 +2,11 @@
  :consumer-secret nil
  :token nil
  :token-secret nil
+ :db-url "jdbc:h2:./db/local"
+
+ :nomad/environments
+ {"heroku"
+  {:db-url #nomad/env-var "DATABASE_URL"}}
+
 
  :nomad/private-file #nomad/file "./resources/private-config.edn"}

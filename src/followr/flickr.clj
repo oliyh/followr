@@ -1,7 +1,8 @@
 (ns followr.flickr
   (:require [followr.config :refer [config]]
             [clj-http.client :as http]
-            [oauth.client :as oauth]))
+            [oauth.client :as oauth]
+            [cheshire.core :as json]))
 
 (def flickr-rest-endpoint "https://api.flickr.com/services/rest")
 
@@ -30,15 +31,35 @@
 (defn call-flickr [op]
   (let [op (merge {:format "json"
                    :nojsoncallback 1} op)]
-    (http/post flickr-rest-endpoint {:query-params (merge (credentials op) op)
-                                     :as :json})))
+    (-> (http/post flickr-rest-endpoint {:query-params (merge (credentials op) op)
+                                         :as :json})
+        :body)))
 
 
-(defn add-contact [user-id]
+(defn add-contact! [user-id]
   (call-flickr {:method "flickr.contacts.add"
                 :user_id user-id
                 :family 0
                 :friend 0}))
 
+(defn remove-contact! [user-id]
+  (call-flickr {:method "flickr.contacts.remove"
+                :user_id user-id}))
+
 (defn list-contacts []
   (call-flickr {:method "flickr.contacts.getList"}))
+
+(defn list-group-members [group-id]
+  (let [{:keys [pages]} (:members (call-flickr {:method "flickr.groups.members.getList"
+                                                :group_id group-id}))]
+    (->> (call-flickr {:method "flickr.groups.members.getList"
+                       :group_id group-id
+                       :page (rand-int pages)})
+         :members
+         :member
+         (map :nsid))))
+
+
+(defn find-groups [q]
+  (call-flickr {:method "flickr.groups.search"
+                :text q}))
