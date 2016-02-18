@@ -1,0 +1,1 @@
+myworker: java $JVM_OPTS -Dnomad.env=heroku -jar target/uberjar/followr-standalone.jar
