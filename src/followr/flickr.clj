@@ -51,7 +51,8 @@
 
 (defn list-group-members [group-id]
   (let [{:keys [pages]} (:members (call-flickr {:method "flickr.groups.members.getList"
-                                                :group_id group-id}))]
+                                                :group_id group-id
+                                                :per_page 0}))]
     (->> (call-flickr {:method "flickr.groups.members.getList"
                        :group_id group-id
                        :page (rand-int pages)})
