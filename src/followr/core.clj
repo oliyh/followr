@@ -57,14 +57,12 @@
     (doseq [candidate candidates]
       (do (log/info "Following" candidate)
           (mark-followed! db candidate)
-          ;;(flickr/add-contact! candidate)
-          ))
+          (flickr/add-contact! candidate)))
 
     (doseq [user (old-following db (-> 14 days ago))]
       (log/info "Removing old user" user)
       (mark-unfollowed! db user)
-      ;;(flickr/remove-contact! user)
-      )))
+      (flickr/remove-contact! user))))
 
 (defn -main [& args]
   (followr)
