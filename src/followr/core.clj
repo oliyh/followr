@@ -13,7 +13,7 @@
   (map :user_id (jdbc/query db (sql/format {:select [:user_id]
                                             :from [:following]}))))
 
-(defn- old-following [db cutoff]
+(defn- following-since [db cutoff]
   (map :user_id (jdbc/query db (sql/format {:select [:user_id]
                                             :from [:following]
                                             :where [:and
@@ -31,25 +31,24 @@
                   {:currently_following false}
                   ["user_id = ?" user-id])))
 
-(defn- find-candidate [currently-following]
+(defn- find-candidates [currently-following]
   (->> (flickr/random-group-members (rand-nth ["38436807@N00" ;;flickr today
                                                "34427469792@N01" ;; flickr central
                                                ]))
        (remove currently-following)
        (shuffle)
-       (some
+       (filter
         #(let [{:keys [user-id photo-count last-uploaded] :as candidate} (flickr/user-photos-summary %)]
            (log/info "Considering candidate" candidate)
            (and (< 100 photo-count)
                 last-uploaded
-                (t/after? last-uploaded (-> 120 days ago))
-                user-id)))))
+                (t/after? last-uploaded (-> 120 days ago)))))))
 
 (defn- followr []
   (let [{:keys [db-url]} (config)
         db (db/create-db-connection db-url)
         currently-following (set (current-following db))
-        candidates [(find-candidate currently-following)]]
+        candidates (take 5 (find-candidates currently-following))]
 
     (log/info "Currently following" (count currently-following))
     (log/info "Found" (count candidates) "new candidates")
@@ -59,7 +58,7 @@
           (mark-followed! db candidate)
           (flickr/add-contact! candidate)))
 
-    (doseq [user (old-following db (-> 14 days ago))]
+    (doseq [user (following-since db (-> 14 days ago))]
       (log/info "Removing old user" user)
       (mark-unfollowed! db user)
       (flickr/remove-contact! user))))
