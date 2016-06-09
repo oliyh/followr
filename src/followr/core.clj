@@ -45,10 +45,10 @@
                 (t/after? last-uploaded (-> 120 days ago)))))))
 
 (defn- followr []
-  (let [{:keys [db-url]} (config)
+  (let [{:keys [db-url follow-limit follow-duration-days]} (config)
         db (db/create-db-connection db-url)
         currently-following (set (current-following db))
-        candidates (take 5 (find-candidates currently-following))]
+        candidates (take follow-limit (find-candidates currently-following))]
 
     (log/info "Currently following" (count currently-following))
     (log/info "Found" (count candidates) "new candidates")
@@ -58,7 +58,7 @@
           (mark-followed! db candidate)
           (flickr/add-contact! candidate)))
 
-    (doseq [user (following-since db (-> 14 days ago))]
+    (doseq [user (following-since db (-> follow-duration-days days ago))]
       (log/info "Removing old user" user)
       (mark-unfollowed! db user)
       (flickr/remove-contact! user))))
