@@ -12,13 +12,13 @@
                  [clj-time "0.12.0"]
 
                  ;; persistence
-                 [org.clojure/java.jdbc "0.6.1"]
-                 [org.postgresql/postgresql "9.4.1208"]
-                 [com.h2database/h2 "1.4.192"]
-                 [com.mchange/c3p0 "0.9.5.2"]
-                 [joplin.core "0.3.6"]
-                 [joplin.jdbc "0.3.6"]
-                 [honeysql "0.7.0"]]
+                 [org.clojure/java.jdbc "0.3.5"]
+                 [org.postgresql/postgresql "9.4-1201-jdbc41"]
+                 [com.h2database/h2 "1.4.189"]
+                 [com.mchange/c3p0 "0.9.5.1"]
+                 [joplin.core "0.2.12"]
+                 [joplin.jdbc "0.2.12"]
+                 [honeysql "0.6.1"]]
   :target-path "target/%s"
   :main ^:skip-aot followr.core
   :resource-paths ["resources" "migrators"]
