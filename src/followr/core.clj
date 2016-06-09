@@ -4,7 +4,7 @@
             [clj-time.coerce :as tc]
             [clojure.tools.logging :as log]
             [followr.db :as db]
-            [followr.config :refer [config]]
+            [followr.config :refer [config] :as config]
             [followr.flickr :as flickr]
             [clojure.java.jdbc :as jdbc]
             [honeysql.core :as sql]))
@@ -46,10 +46,10 @@
                 (t/after? last-uploaded (-> 120 days ago)))))))
 
 (defn- followr []
-  (let [{:keys [db-url follow-limit follow-duration-days]} (config)
+  (let [{:keys [db-url]} (config)
         db (db/create-db-connection db-url)
         currently-following (set (current-following db))
-        candidates (take follow-limit (find-candidates currently-following))]
+        candidates (take (config/follow-limit) (find-candidates currently-following))]
 
     (log/info "Currently following" (count currently-following))
     (log/info "Found" (count candidates) "new candidates")
@@ -59,7 +59,7 @@
           (mark-followed! db candidate)
           (flickr/add-contact! candidate)))
 
-    (doseq [user (following-since db (-> follow-duration-days days ago))]
+    (doseq [user (following-since db (-> (config/follow-duration) ago))]
       (log/info "Removing old user" user)
       (mark-unfollowed! db user)
       (flickr/remove-contact! user))))
