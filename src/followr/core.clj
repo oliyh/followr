@@ -34,6 +34,7 @@
 (defn- find-candidates [currently-following]
   (->> (flickr/random-group-members (rand-nth ["38436807@N00" ;;flickr today
                                                "34427469792@N01" ;; flickr central
+                                               "95309787@N00" ;;flickritis
                                                ]))
        (remove currently-following)
        (shuffle)
