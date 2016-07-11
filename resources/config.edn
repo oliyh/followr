@@ -5,6 +5,7 @@
  :db-url "jdbc:h2:./db/local"
  :follow-limit 10
  :follow-duration-days 14
+ :archive-size 1000
 
  :nomad/environments
  {"heroku"

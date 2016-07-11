@@ -7,11 +7,16 @@
             [followr.config :refer [config] :as config]
             [followr.flickr :as flickr]
             [clojure.java.jdbc :as jdbc]
-            [honeysql.core :as sql]))
+            [honeysql.core :as sql]
+            [clojure.edn :as edn]
+            [clojure.string :as string]))
 
 (defn- current-following [db]
-  (map :user_id (jdbc/query db (sql/format {:select [:user_id]
-                                            :from [:following]}))))
+  (concat (map :user_id (jdbc/query db (sql/format {:select [:user_id]
+                                                    :from [:following]})))
+          (mapcat (comp edn/read-string slurp #(.getCharacterStream %) :user_ids)
+                  (jdbc/query db (sql/format {:select [:user_ids]
+                                              :from [:following_archive]})))))
 
 (defn- following-since [db cutoff]
   (map :user_id (jdbc/query db (sql/format {:select [:user_id]
@@ -19,6 +24,20 @@
                                             :where [:and
                                                     [:= :currently_following true]
                                                     [:< :followed_on (tc/to-sql-time cutoff)]]}))))
+
+(defn- archive-followers [db archive-size]
+  (log/info "Looking for followers to archive")
+  (jdbc/with-db-transaction [db db]
+    (let [archivable-followers (mapv :user_id (jdbc/query db (sql/format {:select [:user_id]
+                                                                          :from [:following]
+                                                                          :where [:= :currently_following false]})))]
+      (when (<= archive-size (count archivable-followers))
+        (log/info "Found" (count archivable-followers) "archivable followers")
+        (doseq [chunk (partition archive-size archivable-followers)
+                :when (<= archive-size (count chunk))]
+          (log/info "Archiving" (count chunk) "followers")
+          (jdbc/insert! db :following_archive {:user_ids (pr-str chunk)})
+          (jdbc/delete! db :following [(format "user_id IN ('%s')" (string/join "','" chunk))]))))))
 
 (defn mark-followed! [db user-id]
   (jdbc/with-db-transaction [db db]
@@ -46,7 +65,7 @@
                 (t/after? last-uploaded (-> 120 days ago)))))))
 
 (defn- followr []
-  (let [{:keys [db-url]} (config)
+  (let [{:keys [db-url archive-size]} (config)
         db (db/create-db-connection db-url)
         currently-following (set (current-following db))
         candidates (take (config/follow-limit) (find-candidates currently-following))]
@@ -62,7 +81,9 @@
     (doseq [user (following-since db (-> (config/follow-duration) ago))]
       (log/info "Removing old user" user)
       (mark-unfollowed! db user)
-      (flickr/remove-contact! user))))
+      (flickr/remove-contact! user))
+
+    (archive-followers db archive-size)))
 
 (defn -main [& args]
   (followr)
