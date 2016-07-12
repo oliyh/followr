@@ -14,7 +14,7 @@
 (defn- current-following [db]
   (concat (map :user_id (jdbc/query db (sql/format {:select [:user_id]
                                                     :from [:following]})))
-          (mapcat (comp edn/read-string slurp #(.getCharacterStream %) :user_ids)
+          (mapcat (comp edn/read-string #(if (string? %) % (slurp (.getCharacterStream %))) :user_ids)
                   (jdbc/query db (sql/format {:select [:user_ids]
                                               :from [:following_archive]})))))
 
