@@ -6,6 +6,7 @@
  :follow-limit 10
  :follow-duration-days 14
  :archive-size 1000
+ :group-ids ["35034359018@N01" "58898522@N00" "71332142@N00" "16978849@N00"]
 
  :nomad/environments
  {"heroku"
@@ -14,7 +15,8 @@
    :consumer-secret #nomad/env-var "FOLLOWR_CONSUMER_SECRET"
    :token #nomad/env-var "FOLLOWR_TOKEN"
    :token-secret #nomad/env-var "FOLLOWR_SECRET"
-   :follow-limit #nomad/env-var "FOLLOWR_FOLLOW_LIMIT"
-   :follow-duration-days #nomad/env-var "FOLLOWR_FOLLOW_DURATION_DAYS"}}
+   :follow-limit #followr/edn-env-var "FOLLOWR_FOLLOW_LIMIT"
+   :follow-duration-days #followr/edn-env-var "FOLLOWR_FOLLOW_DURATION_DAYS"
+   :group-ids #followr/edn-env-var "FOLLOWR_GROUP_IDS"}}
 
  :nomad/private-file #nomad/file "./resources/private-config.edn"}

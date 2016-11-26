@@ -1,21 +1,13 @@
 (ns followr.config
   (:require [nomad :refer [defconfig]]
-            [clojure.java.io :as io]
-            [clj-time.core :as t :refer [days]]))
+            [clojure.java.io :as io]))
 
-(defconfig config (io/resource "config.edn"))
+(defn safe-parse-edn [x]
+  (if (string? x)
+    (nomad/parse-edn x)
+    x))
 
-(defn follow-limit []
-  (let [follow-limit (:follow-limit (config))]
-    (cond
-      (string? follow-limit) (Integer/parseInt follow-limit)
-      (number? follow-limit) (int follow-limit)
-      (nil? follow-limit) 5)))
+(def data-readers
+  {'followr/edn-env-var (comp safe-parse-edn nomad/read-env-var)})
 
-(defn follow-duration []
-  (let [follow-duration-days (:follow-duration-days (config))]
-    (-> (cond
-          (string? follow-duration-days) (Integer/parseInt follow-duration-days)
-          (number? follow-duration-days) (int follow-duration-days)
-          (nil? follow-duration-days) 14)
-        days)))
+(defconfig config (io/resource "config.edn") {:data-readers data-readers})

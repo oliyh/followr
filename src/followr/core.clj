@@ -50,11 +50,8 @@
                   {:currently_following false}
                   ["user_id = ?" user-id])))
 
-(defn- find-candidates [currently-following]
-  (->> (flickr/random-group-members (rand-nth ["38436807@N00" ;;flickr today
-                                               "34427469792@N01" ;; flickr central
-                                               "95309787@N00" ;;flickritis
-                                               ]))
+(defn- find-candidates [group-ids currently-following]
+  (->> (flickr/random-group-members (rand-nth group-ids))
        (remove currently-following)
        (shuffle)
        (filter
@@ -65,10 +62,10 @@
                 (t/after? last-uploaded (-> 120 days ago)))))))
 
 (defn- followr []
-  (let [{:keys [db-url archive-size]} (config)
+  (let [{:keys [db-url archive-size group-ids follow-limit follow-duration-days]} (config)
         db (db/create-db-connection db-url)
         currently-following (set (current-following db))
-        candidates (take (config/follow-limit) (find-candidates currently-following))]
+        candidates (take follow-limit (find-candidates group-ids currently-following))]
 
     (log/info "Currently following" (count currently-following))
     (log/info "Found" (count candidates) "new candidates")
@@ -78,7 +75,7 @@
           (mark-followed! db candidate)
           (flickr/add-contact! candidate)))
 
-    (doseq [user (following-since db (-> (config/follow-duration) ago))]
+    (doseq [user (following-since db (-> follow-duration-days days ago))]
       (log/info "Removing old user" user)
       (mark-unfollowed! db user)
       (flickr/remove-contact! user))
