@@ -68,7 +68,7 @@
                                     :extras "date_upload"})
                       :photos)]
     {:user-id user-id
-     :photo-count (Long/parseLong (:total response))
+     :photo-count (some-> response :total Long/parseLong)
      :last-uploaded (some-> response :photo first :dateupload Long/parseLong (* 1000) tc/from-long)}))
 
 (defn find-groups [q]
